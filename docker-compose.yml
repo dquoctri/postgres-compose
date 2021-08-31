@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  postgres_db:
+    container_name: postgres_container
+    image: "postgres:${POSTGRES_VERSION:-latest}"
+    environment:
+      TZ: Etc/UTC
+      POSTGRES_INITDB_ARGS: '--locale=en_US.UTF-8 --encoding=UTF8 --auth-host=scram-sha-256 --auth-local=scram-sha-256'
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_APP_SCHEMA: ${POSTGRES_APP_SCHEMA:-demo_sche}
+      POSTGRES_APP_USER: ${POSTGRES_APP_USER:-demo}
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:-demo}
+      POSTGRES_APP_CONNECTION_LIMIT: ${POSTGRES_APP_CONNECTION_LIMIT:--1}
+      PGDATA: '/var/lib/postgresql/data/pgdata'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ${POSTGRES_CONFIG_DIR:-./.config/postgres}/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ${POSTGRES_CONFIG_DIR:-./.config/postgres}/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ${POSTGRES_CONFIG_DIR:-./.config/postgres}/sql/:/docker-entrypoint-initdb.d/
+    command: '-c config_file="/etc/postgresql/postgresql.conf"'
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - env_net
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -h localhost"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: "dpage/pgadmin4:${PGADMIN_VERSION:-latest}"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-SuperSecret}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+      - ${PGADMIN_CONFIG_DIR:-./.config/pgadmin4}/servers.json:/pgadmin4/servers.json
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - env_net
+    restart: unless-stopped
+
+networks:
+  env_net:
+    external: true
+
+volumes:
+  postgres:
+  pgadmin:
