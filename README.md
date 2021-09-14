@@ -1,5 +1,5 @@
 # postgres-compose
-PostgreSQL &amp; Pgadmin4 powered by docker-compose. This repository is a template of docker-compose for running the PostgresSQL database and Pgadmin database management system. The template is reusable for all applications that uses PostgreSQL database on docker-compose. There are the overview of 4 technologies used.
+PostgreSQL &amp; Pgadmin4 powered by docker-compose. This repository is a template of docker-compose for running the PostgresSQL database and Pgadmin database management system. The template is reusable for all applications that use the PostgreSQL database on docker-compose. There is an overview of the technologies used.
 
 # [PostgreSQL](https://www.postgresql.org/)
 > PostgreSQL is a powerful, open source object-relational database system that uses and extends the SQL language combined with many features that safely store and scale the most complicated data workloads.
