@@ -3,44 +3,39 @@ version: '3.9'
 services:
   postgres_db:
     container_name: postgres_container
-    image: "postgres:${POSTGRES_VERSION:-latest}"
+    image: "${POSTGRES_IMAGE:-postgres:latest}"
     environment:
       TZ: Etc/UTC
-      POSTGRES_INITDB_ARGS: '--locale=en_US.UTF-8 --encoding=UTF8 --auth-host=scram-sha-256 --auth-local=scram-sha-256'
-      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: '--locale=en_US.UTF-8 --encoding=UTF8'
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_APP_SCHEMA: ${POSTGRES_APP_SCHEMA:-demo_sche}
-      POSTGRES_APP_USER: ${POSTGRES_APP_USER:-demo}
-      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:-demo}
-      POSTGRES_APP_CONNECTION_LIMIT: ${POSTGRES_APP_CONNECTION_LIMIT:--1}
-      PGDATA: '/var/lib/postgresql/data/pgdata'
     volumes:
-      - postgres:/var/lib/postgresql/data
-      - ${POSTGRES_CONFIG_DIR:-./.config/postgres}/pg_hba.conf:/etc/postgresql/pg_hba.conf
-      - ${POSTGRES_CONFIG_DIR:-./.config/postgres}/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ${POSTGRES_CONFIG_DIR:-./.config/postgres}/sql/:/docker-entrypoint-initdb.d/
-    command: '-c config_file="/etc/postgresql/postgresql.conf"'
+      - pgdata:/var/lib/postgresql/data
+      - ${POSTGRES_CONFIG_DIR:-./.config/postgres}/sql/30_postgres_initdb.sh:/docker-entrypoint-initdb.d/30_postgres_initdb.sh
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
       - env_net
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -h localhost"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -h localhost"
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
 
   pgadmin:
     container_name: pgadmin_container
-    image: "dpage/pgadmin4:${PGADMIN_VERSION:-latest}"
+    image: "${PGADMIN_IMAGE:-dpage/pgadmin:latest}"
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-SuperSecret}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_CONFIG_SERVER_MODE: "${PGADMIN_CONFIG_SERVER_MODE:-True}"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "${PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED:-True}"
     volumes:
       - pgadmin:/var/lib/pgadmin
       - ${PGADMIN_CONFIG_DIR:-./.config/pgadmin4}/servers.json:/pgadmin4/servers.json
@@ -55,5 +50,5 @@ networks:
     external: true
 
 volumes:
-  postgres:
+  pgdata:
   pgadmin:

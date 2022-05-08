@@ -2,7 +2,7 @@
 
 docker compose down;
 
-# docker volume rm -f postgres-compose_pgadmin postgres-compose_postgres;
+# docker volume rm -f postgres-compose_pgadmin postgres-compose_pgdata;
 
 docker compose build --no-cache;
 
